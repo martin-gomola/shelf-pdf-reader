@@ -5,7 +5,7 @@ import { PdfOutlineMenu } from './PdfOutlineMenu.js'
 import { usePdfDocument, type PdfLoadProgress } from './usePdfDocument.js'
 import { usePdfNavigation } from './usePdfNavigation.js'
 import { usePdfRender } from './usePdfRender.js'
-import { getSwipeDecision } from './pdfSwipe.js'
+import { getSwipeDecision, shouldCapturePageSwipe } from './pdfSwipe.js'
 import { formatBytes } from './formatBytes.js'
 
 export interface PdfViewerProps {
@@ -111,7 +111,8 @@ export function PdfViewer({
     // drags and the user could never reach the cropped left/right edges of
     // the page.
     const frame = frameRef.current
-    if (frame && frame.scrollWidth - frame.clientWidth > 1) {
+    const horizontalOverflowPx = frame ? frame.scrollWidth - frame.clientWidth : 0
+    if (!shouldCapturePageSwipe(zoom, horizontalOverflowPx)) {
       return
     }
 
@@ -124,7 +125,7 @@ export function PdfViewer({
     }
     setIsSwiping(true)
     event.currentTarget.setPointerCapture(event.pointerId)
-  }, [menuOpen])
+  }, [menuOpen, zoom])
 
   const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     const swipeState = swipeStateRef.current
@@ -200,6 +201,7 @@ export function PdfViewer({
         canvasRef={canvasRef}
         frameRef={frameRef}
         dragOffset={dragOffset}
+        isZoomed={zoom > 1}
         isSwiping={isSwiping}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

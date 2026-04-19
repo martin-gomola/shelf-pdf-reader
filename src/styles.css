@@ -358,6 +358,10 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.pdf-reader-frame--pannable {
+  justify-content: flex-start;
+}
+
 .pdf-reader-page {
   display: flex;
   justify-content: center;
@@ -378,6 +382,10 @@
   will-change: transform;
   user-select: none;
   cursor: grab;
+}
+
+.pdf-reader-page--pannable {
+  justify-content: flex-start;
 }
 
 .pdf-reader-page--swiping {

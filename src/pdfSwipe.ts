@@ -3,6 +3,16 @@ const SWIPE_AXIS_RATIO = 1.2
 
 export type SwipeDecision = 'previous' | 'next' | null
 
+export function shouldCapturePageSwipe(zoom: number, horizontalOverflowPx: number): boolean {
+  // Once the user is zoomed past fit-width, match native mobile PDF viewers:
+  // horizontal drags should pan the page, not turn it.
+  if (zoom > 1) return false
+
+  // Even at fit-width, a landscape spread can overflow horizontally. In that
+  // case native panning should win for the same reason.
+  return horizontalOverflowPx <= 1
+}
+
 export function getSwipeDecision(deltaX: number, deltaY: number): SwipeDecision {
   const absX = Math.abs(deltaX)
   const absY = Math.abs(deltaY)
