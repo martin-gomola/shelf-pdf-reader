@@ -1,18 +1,3 @@
-function IconFocus({ active }: { active: boolean }) {
-  // "Maximize" / "minimize" corner brackets - matches the focus-mode metaphor
-  // (hide chrome, just show the page) without burning ~70 px of bar width on
-  // the word "Focus mode".
-  return active ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 3v6H3M21 9h-6V3M3 15h6v6M15 21v-6h6" />
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" />
-    </svg>
-  )
-}
-
 export function PdfControls({
   focusMode,
   page,
@@ -26,7 +11,6 @@ export function PdfControls({
   onZoomOut,
   onZoomIn,
   onFitWidth,
-  onToggleFocus,
 }: {
   focusMode: boolean
   page: number
@@ -40,7 +24,6 @@ export function PdfControls({
   onZoomOut: () => void
   onZoomIn: () => void
   onFitWidth: () => void
-  onToggleFocus: () => void
 }) {
   return (
     <div className={`pdf-bottom-bar${focusMode ? ' pdf-bottom-bar--hidden' : ''}`}>
@@ -79,18 +62,6 @@ export function PdfControls({
         </button>
         <button className="pdf-bar-btn" onClick={onZoomIn} aria-label="Zoom in">+</button>
       </div>
-
-      <div className="pdf-bar-divider" />
-
-      <button
-        className="pdf-bar-btn pdf-bar-focus-toggle"
-        onClick={onToggleFocus}
-        aria-pressed={focusMode}
-        aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
-        title={focusMode ? 'Exit focus mode' : 'Focus mode'}
-      >
-        <IconFocus active={focusMode} />
-      </button>
     </div>
   )
 }
