@@ -522,19 +522,19 @@
     gap: 4px;
     max-width: calc(100% - 16px);
   }
-  /* Mobile tap targets: 44px is the Apple HIG / WCAG 2.5.5 minimum. The old
-     32px squares meant misclicks were guaranteed on a finger-sized hit area. */
   .pdf-bar-btn {
-    min-width: 44px;
+    min-width: 36px;
     height: 44px;
   }
   .pdf-bar-page-label {
     height: 44px;
-    padding: 0 10px;
+    padding: 0 6px;
   }
   .pdf-bar-page-input {
-    /* Inputs already use 16px to suppress iOS zoom-on-focus; keep that. */
-    width: 3.5ch;
+    width: 3ch;
+  }
+  .pdf-bar-focus-toggle {
+    min-width: 36px;
   }
   /* On narrow phones the dividers are visual noise once the bar is dense.
      Hide them - the icon groupings already read as separate clusters. */
