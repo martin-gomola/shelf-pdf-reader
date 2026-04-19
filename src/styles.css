@@ -255,6 +255,21 @@
 
 /* ─── Page frame & canvas ─── */
 
+/*
+ * Reserved chrome insets. The top menu toggle (40px) and the floating bottom
+ * toolbar (56px on mobile, 52px on desktop) are position:fixed and would
+ * otherwise overlay the page. We pad the frame's scroll area by these heights
+ * (plus safe-area insets) so the user can scroll the page past them and reach
+ * the very top and bottom edges, which is the bug that made zoomed pages
+ * unreachable below the toolbar.
+ */
+:where(.pdf-reader) {
+  --shelf-pdf-toggle-h: 40px;
+  --shelf-pdf-bottom-bar-h: 52px;
+  --shelf-pdf-chrome-top: calc(var(--shelf-pdf-toggle-h) + var(--sp-3) + env(safe-area-inset-top));
+  --shelf-pdf-chrome-bottom: calc(var(--shelf-pdf-bottom-bar-h) + var(--sp-3) + env(safe-area-inset-bottom));
+}
+
 .pdf-reader-frame {
   flex: 1;
   min-height: 0;
@@ -263,7 +278,14 @@
   overflow: auto;
   display: flex;
   justify-content: center;
-  padding: 0;
+  /* Reserve space for the fixed top toggle and bottom toolbar so the page can
+     be scrolled all the way to its edges instead of being clipped behind the
+     glass chrome. Horizontal padding stays 0 so portrait pages still fit
+     width-wise without inducing accidental horizontal overflow. */
+  padding-top: var(--shelf-pdf-chrome-top);
+  padding-bottom: var(--shelf-pdf-chrome-bottom);
+  padding-left: 0;
+  padding-right: 0;
   /* Allow native panning in BOTH axes so the user can scroll a page that's
      wider than the viewport (zoomed in, or a landscape art-book spread). The
      pointer-event swipe handler in PdfViewer.tsx coexists with this: it only
@@ -277,11 +299,12 @@
 .pdf-reader-page {
   display: flex;
   justify-content: center;
-  /* Vertically center the page when it's shorter than the viewport (e.g. a TOC
-     spread on a tall portrait phone). When the page is taller than the
-     viewport, .pdf-reader-frame's overflow:auto handles scrolling and this
-     centering is a no-op. */
-  align-items: center;
+  /* Anchor the page to the top of the frame. Vertical centering wasted ~250px
+     of screen real estate on portrait phones with near-square art books (page
+     fit width but was shorter than the viewport, then got pushed into the
+     middle). Top-anchoring keeps the page at the natural reading position and
+     lets users scroll down through chrome insets when zoomed in. */
+  align-items: flex-start;
   /* Grow with the canvas so a page wider than the viewport (manual zoom or
      landscape art-book spread) actually creates horizontal overflow inside
      .pdf-reader-frame. Width:100% used to clamp the wrapper to the frame
@@ -473,6 +496,17 @@
 /* ─── Mobile tweaks ─── */
 
 @media (max-width: 680px) {
+  /* Mobile uses 44px tap targets (HIG / WCAG 2.5.5), so the actual chrome
+     height grows. Override the chrome-inset variables so the frame's
+     padding-bottom matches reality and the page can be scrolled to its true
+     last pixel rather than being clipped under the toolbar. */
+  :where(.pdf-reader) {
+    --shelf-pdf-toggle-h: 40px;
+    --shelf-pdf-bottom-bar-h: 56px;
+    --shelf-pdf-chrome-top: calc(var(--shelf-pdf-toggle-h) + var(--sp-2) + env(safe-area-inset-top));
+    --shelf-pdf-chrome-bottom: calc(var(--shelf-pdf-bottom-bar-h) + var(--sp-2) + env(safe-area-inset-bottom));
+  }
+
   .pdf-bottom-bar {
     bottom: max(var(--sp-2), env(safe-area-inset-bottom));
     border-radius: var(--radius-lg);
@@ -498,9 +532,6 @@
      Hide them - the icon groupings already read as separate clusters. */
   .pdf-bar-divider {
     display: none;
-  }
-  .pdf-reader-frame {
-    padding: 0;
   }
   .pdf-menu-toggle {
     top: max(var(--sp-2), env(safe-area-inset-top));
