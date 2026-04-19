@@ -3,6 +3,20 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## 0.4.0 - 2026-04-19
+
+### Changed
+- Focus mode toggle moved back to the bottom toolbar (same row as navigation
+  and zoom) with a new eye / eye-off icon that better communicates the feature.
+- Removed the "View" section from the side menu panel — focus mode no longer
+  lives there.
+
+### Breaking
+- `PdfOutlineMenu` no longer accepts `focusMode` or `onToggleFocus` props.
+- `PdfControls` now requires `onToggleFocus: () => void`. Most consumers only
+  use the public `PdfViewer` component, which wires this internally — no change
+  needed there.
+
 ## 0.2.0 - 2026-04-18
 
 ### Changed

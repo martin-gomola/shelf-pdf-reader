@@ -193,8 +193,6 @@ export function PdfViewer({
         outline={outline}
         page={page}
         goTo={goTo}
-        focusMode={focusMode}
-        onToggleFocus={toggleFocus}
       />
 
       <PdfCanvas
@@ -222,6 +220,7 @@ export function PdfViewer({
         onZoomOut={() => setZoom((currentZoom) => Math.max(0.5, Number((currentZoom - 0.25).toFixed(2))))}
         onZoomIn={() => setZoom((currentZoom) => Math.min(3, Number((currentZoom + 0.25).toFixed(2))))}
         onFitWidth={() => setZoom(1)}
+        onToggleFocus={toggleFocus}
       />
 
       {focusMode && (

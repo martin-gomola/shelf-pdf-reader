@@ -1,3 +1,23 @@
+function IconEye() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function IconEyeOff() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" />
+      <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+      <path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" />
+      <path d="m2 2 20 20" />
+    </svg>
+  )
+}
+
 export function PdfControls({
   focusMode,
   page,
@@ -11,6 +31,7 @@ export function PdfControls({
   onZoomOut,
   onZoomIn,
   onFitWidth,
+  onToggleFocus,
 }: {
   focusMode: boolean
   page: number
@@ -24,6 +45,7 @@ export function PdfControls({
   onZoomOut: () => void
   onZoomIn: () => void
   onFitWidth: () => void
+  onToggleFocus: () => void
 }) {
   return (
     <div className={`pdf-bottom-bar${focusMode ? ' pdf-bottom-bar--hidden' : ''}`}>
@@ -49,9 +71,6 @@ export function PdfControls({
 
       <div className="pdf-bar-group">
         <button className="pdf-bar-btn" onClick={onZoomOut} aria-label="Zoom out">&minus;</button>
-        {/* The percentage doubles as the "Fit width" button - tapping resets
-            zoom to 1.0. Saves a whole bar slot on narrow phones and the
-            target gesture (tap the number to reset it) reads naturally. */}
         <button
           className="pdf-bar-zoom-label pdf-bar-zoom-reset"
           onClick={onFitWidth}
@@ -62,6 +81,18 @@ export function PdfControls({
         </button>
         <button className="pdf-bar-btn" onClick={onZoomIn} aria-label="Zoom in">+</button>
       </div>
+
+      <div className="pdf-bar-divider" />
+
+      <button
+        className={`pdf-bar-btn pdf-bar-focus-toggle${focusMode ? ' active' : ''}`}
+        onClick={onToggleFocus}
+        aria-label={focusMode ? 'Exit focus mode' : 'Enter focus mode'}
+        aria-pressed={focusMode}
+        title="Focus mode"
+      >
+        {focusMode ? <IconEyeOff /> : <IconEye />}
+      </button>
     </div>
   )
 }
