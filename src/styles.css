@@ -1,0 +1,521 @@
+/*
+ * Styles for @mgomola/shelf-pdf-reader.
+ *
+ * The package uses the same CSS variable names that vhetts-blueprints already
+ * exposes globally (--sp-2, --text, --accent-500, etc.), with sensible
+ * fallbacks so a consumer with no design tokens (e.g. a fresh app) still
+ * gets a usable look. Override any of these in your app's stylesheet to
+ * theme the reader.
+ */
+
+.pdf-reader,
+.reader-loading,
+.pdf-menu-toggle,
+.pdf-menu-backdrop,
+.pdf-menu-panel,
+.pdf-bottom-bar,
+.pdf-focus-restore {
+  /* Spacing scale */
+  --sp-1: var(--shelf-pdf-sp-1, 4px);
+  --sp-2: var(--shelf-pdf-sp-2, 8px);
+  --sp-3: var(--shelf-pdf-sp-3, 12px);
+  --sp-4: var(--shelf-pdf-sp-4, 16px);
+  --sp-5: var(--shelf-pdf-sp-5, 24px);
+
+  /* Type scale */
+  --fs-xs: var(--shelf-pdf-fs-xs, 0.75rem);
+  --fs-sm: var(--shelf-pdf-fs-sm, 0.875rem);
+  --fs-base: var(--shelf-pdf-fs-base, 1rem);
+  --fs-lg: var(--shelf-pdf-fs-lg, 1.125rem);
+
+  /* Radii */
+  --radius-sm: var(--shelf-pdf-radius-sm, 6px);
+  --radius: var(--shelf-pdf-radius, 10px);
+  --radius-lg: var(--shelf-pdf-radius-lg, 14px);
+  --radius-pill: var(--shelf-pdf-radius-pill, 999px);
+
+  /* Surfaces & text — fall back to design-token names if defined upstream */
+  --canvas: var(--shelf-pdf-canvas, #f6f6f6);
+  --surface-elevated: var(--shelf-pdf-surface-elevated, #ffffff);
+  --surface-solid: var(--shelf-pdf-surface-solid, #ffffff);
+  --text: var(--shelf-pdf-text, #1a1a1a);
+  --text-secondary: var(--shelf-pdf-text-secondary, #4a4a4a);
+  --text-muted: var(--shelf-pdf-text-muted, #777);
+  --text-hint: var(--shelf-pdf-text-hint, #999);
+  --line-strong: var(--shelf-pdf-line-strong, rgba(0, 0, 0, 0.18));
+  --glass-border: var(--shelf-pdf-glass-border, rgba(0, 0, 0, 0.08));
+  --nav-glass-bg: var(--shelf-pdf-nav-glass-bg, rgba(255, 255, 255, 0.78));
+  --nav-glass-border: var(--shelf-pdf-nav-glass-border, rgba(0, 0, 0, 0.08));
+  --hover-bg: var(--shelf-pdf-hover-bg, rgba(0, 0, 0, 0.04));
+  --hover-bg-strong: var(--shelf-pdf-hover-bg-strong, rgba(0, 0, 0, 0.08));
+  --accent-500: var(--shelf-pdf-accent-500, #24c768);
+  --accent-600: var(--shelf-pdf-accent-600, #1faf5b);
+}
+
+/* ─── Loading state ─── */
+
+.reader-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  min-height: 100dvh;
+  padding: 0 var(--sp-4);
+  color: var(--text);
+}
+
+.pdf-load-progress {
+  width: min(360px, 80vw);
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.pdf-load-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--text);
+  transition: width 120ms linear;
+}
+
+.pdf-load-progress-bar--indeterminate {
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--text) 50%,
+    transparent 100%
+  );
+  animation: pdf-load-indeterminate 1.2s infinite linear;
+}
+
+@keyframes pdf-load-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(285%); }
+}
+
+.pdf-load-progress-text {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.reader-loading .muted { color: var(--text-muted); }
+.reader-loading .error-text { color: #d9534f; text-align: center; }
+
+/* ─── Reader chrome ─── */
+
+.pdf-reader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+  z-index: 50;
+}
+
+.pdf-menu-toggle {
+  position: fixed;
+  top: max(var(--sp-3), env(safe-area-inset-top));
+  right: var(--sp-3);
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--nav-glass-bg) 92%, transparent);
+  border: 1px solid var(--nav-glass-border);
+  backdrop-filter: blur(16px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, opacity 180ms ease;
+}
+.pdf-menu-toggle:hover { background: var(--hover-bg-strong); color: var(--text); }
+.pdf-reader--focus .pdf-menu-toggle { opacity: 0; pointer-events: none; }
+
+/* ─── Side menu ─── */
+
+.pdf-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgba(0, 0, 0, 0.32);
+  animation: shelf-pdf-fade-in 180ms ease both;
+}
+
+.pdf-menu-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(320px, 85vw);
+  height: 100%;
+  background: var(--surface-elevated);
+  border-left: 1px solid var(--glass-border);
+  padding: max(var(--sp-5), env(safe-area-inset-top)) var(--sp-4) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  overflow-y: auto;
+  animation: shelf-pdf-slide-in-menu 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  color: var(--text);
+}
+
+@keyframes shelf-pdf-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shelf-pdf-slide-in-menu {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.pdf-menu-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-500);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: var(--sp-2) 0;
+  cursor: pointer;
+}
+.pdf-menu-back:hover { opacity: 0.8; }
+
+.pdf-menu-title {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  margin: 0;
+}
+
+.pdf-menu-section-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 var(--sp-2);
+}
+
+.pdf-menu-chapters {
+  flex: 1;
+  min-height: 0;
+}
+
+.pdf-menu-chapter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pdf-menu-chapter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.pdf-menu-chapter-item:hover { background: var(--hover-bg); }
+.pdf-menu-chapter-item.active {
+  background: rgba(36, 199, 104, 0.10);
+  color: var(--accent-600);
+  font-weight: 600;
+}
+.pdf-menu-chapter-page {
+  font-size: var(--fs-xs);
+  color: var(--text-hint);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.pdf-menu-chapter-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* ─── Page frame & canvas ─── */
+
+.pdf-reader-frame {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  /* Allow native panning in BOTH axes so the user can scroll a page that's
+     wider than the viewport (zoomed in, or a landscape art-book spread). The
+     pointer-event swipe handler in PdfViewer.tsx coexists with this: it only
+     consumes horizontal-dominated gestures, and yields to native scrolling
+     when the frame actually has horizontal overflow (see handlePointerDown).
+     pinch-zoom stays enabled so iOS rubber-band zoom still works on the page. */
+  touch-action: pan-x pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pdf-reader-page {
+  display: flex;
+  justify-content: center;
+  /* Vertically center the page when it's shorter than the viewport (e.g. a TOC
+     spread on a tall portrait phone). When the page is taller than the
+     viewport, .pdf-reader-frame's overflow:auto handles scrolling and this
+     centering is a no-op. */
+  align-items: center;
+  /* Grow with the canvas so a page wider than the viewport (manual zoom or
+     landscape art-book spread) actually creates horizontal overflow inside
+     .pdf-reader-frame. Width:100% used to clamp the wrapper to the frame
+     width, which masked overflow and made cropped pages unreachable. */
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  transition: transform 180ms ease;
+  will-change: transform;
+  user-select: none;
+  cursor: grab;
+}
+
+.pdf-reader-page--swiping {
+  transition: none;
+  cursor: grabbing;
+}
+
+.pdf-reader-page canvas {
+  display: block;
+  /* No max-width clamp: the canvas's inline width (set in usePdfRender.ts to
+     viewport.width px) is the source of truth. When that exceeds the frame
+     width, the wrapper's max-content + the frame's overflow:auto deliver a
+     scrollable page rather than a silently-shrunk one. */
+  height: auto !important;
+  /* We supersample the canvas (see SUPERSAMPLE_FACTOR in usePdfRender.ts) so
+     the browser ends up downscaling the bitmap to fit CSS pixels. Force the
+     high-quality filter explicitly so Safari/Chromium don't pick nearest-
+     neighbour at integer-ish ratios. */
+  image-rendering: auto;
+}
+
+/* ─── Bottom toolbar ─── */
+
+.pdf-bottom-bar {
+  position: fixed;
+  bottom: max(var(--sp-3), env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--nav-glass-bg) 94%, transparent);
+  border: 1px solid var(--nav-glass-border);
+  backdrop-filter: blur(18px);
+  max-width: calc(100% - 24px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  color: var(--text-secondary);
+}
+
+.pdf-bottom-bar--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(12px);
+  pointer-events: none;
+}
+
+.pdf-bar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.pdf-bar-btn {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.pdf-bar-btn:hover { background: var(--hover-bg); color: var(--text); }
+.pdf-bar-btn:disabled { opacity: 0.3; cursor: default; }
+.pdf-bar-btn:disabled:hover { background: transparent; }
+
+.pdf-bar-page-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0 var(--sp-2);
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-solid);
+  border: 1px solid var(--glass-border);
+}
+
+.pdf-bar-page-input {
+  width: 4ch;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  /* iOS auto-zooms into any input under 16px on focus and won't zoom back out
+     cleanly. Force 16px so tapping the page number stays put. */
+  font-size: 16px;
+  text-align: right;
+  outline: none;
+  padding: 0;
+}
+
+.pdf-bar-page-total {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pdf-bar-zoom-label {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 3.5ch;
+  text-align: center;
+}
+
+/* The percentage label doubles as a fit-width reset button. Reset native
+   button chrome and give it a faint hover affordance so it reads as tappable
+   on touch devices. */
+.pdf-bar-zoom-reset {
+  background: transparent;
+  border: none;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background 120ms ease, color 120ms ease;
+}
+.pdf-bar-zoom-reset:hover { background: var(--hover-bg); color: var(--text); }
+.pdf-bar-zoom-reset:active { background: var(--hover-bg-strong); }
+
+.pdf-bar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--line-strong);
+  flex-shrink: 0;
+}
+
+/* Focus-mode toggle uses the same icon button base, but lights up green when
+   active so users can tell the chrome-hiding toggle is on. */
+.pdf-bar-focus-toggle[aria-pressed="true"] {
+  background: rgba(36, 199, 104, 0.12);
+  color: var(--accent-600);
+}
+
+/* ─── Focus restore (bottom-right) ─── */
+
+.pdf-focus-restore {
+  position: fixed;
+  bottom: max(var(--sp-3), env(safe-area-inset-bottom));
+  right: var(--sp-3);
+  z-index: 56;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--nav-glass-bg) 92%, transparent);
+  border: 1px solid var(--nav-glass-border);
+  backdrop-filter: blur(16px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 150ms ease, background 150ms ease;
+}
+.pdf-focus-restore:hover { opacity: 1; background: var(--hover-bg-strong); }
+
+/* sr-only utility (the package's own aria-only labels rely on it). */
+.pdf-bar-page-label .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ─── Mobile tweaks ─── */
+
+@media (max-width: 680px) {
+  .pdf-bottom-bar {
+    bottom: max(var(--sp-2), env(safe-area-inset-bottom));
+    border-radius: var(--radius-lg);
+    padding: 6px var(--sp-2);
+    gap: 4px;
+    max-width: calc(100% - 16px);
+  }
+  /* Mobile tap targets: 44px is the Apple HIG / WCAG 2.5.5 minimum. The old
+     32px squares meant misclicks were guaranteed on a finger-sized hit area. */
+  .pdf-bar-btn {
+    min-width: 44px;
+    height: 44px;
+  }
+  .pdf-bar-page-label {
+    height: 44px;
+    padding: 0 10px;
+  }
+  .pdf-bar-page-input {
+    /* Inputs already use 16px to suppress iOS zoom-on-focus; keep that. */
+    width: 3.5ch;
+  }
+  /* On narrow phones the dividers are visual noise once the bar is dense.
+     Hide them - the icon groupings already read as separate clusters. */
+  .pdf-bar-divider {
+    display: none;
+  }
+  .pdf-reader-frame {
+    padding: 0;
+  }
+  .pdf-menu-toggle {
+    top: max(var(--sp-2), env(safe-area-inset-top));
+    right: var(--sp-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdf-reader *,
+  .pdf-reader *::before,
+  .pdf-reader *::after,
+  .pdf-menu-backdrop,
+  .pdf-menu-panel {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
