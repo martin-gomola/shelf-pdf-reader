@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { PdfCanvas } from './PdfCanvas.js'
 import { PdfControls } from './PdfControls.js'
 import { PdfOutlineMenu } from './PdfOutlineMenu.js'
 import { usePdfDocument, type PdfLoadProgress } from './usePdfDocument.js'
 import { usePdfNavigation } from './usePdfNavigation.js'
 import { usePdfRender } from './usePdfRender.js'
-import { getSwipeDecision, shouldCapturePageSwipe } from './pdfSwipe.js'
 import { formatBytes } from './formatBytes.js'
 
 export interface PdfViewerProps {
@@ -46,15 +45,6 @@ export function PdfViewer({
   const frameRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
-  const [dragOffset, setDragOffset] = useState(0)
-  const [isSwiping, setIsSwiping] = useState(false)
-  const swipeStateRef = useRef<{
-    pointerId: number
-    startX: number
-    startY: number
-    lastX: number
-    lastY: number
-  } | null>(null)
   const {
     page,
     numPages,
@@ -92,77 +82,6 @@ export function PdfViewer({
     setMenuOpen(false)
   }
 
-  const resetSwipe = useCallback(() => {
-    swipeStateRef.current = null
-    setDragOffset(0)
-    setIsSwiping(false)
-  }, [])
-
-  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    if (menuOpen) return
-    if (event.pointerType === 'mouse' && event.button !== 0) return
-
-    const target = event.target instanceof HTMLElement ? event.target : null
-    if (target?.closest('button, input, select, textarea, a, label, [role="button"]')) return
-
-    // When the frame has horizontal scroll headroom (page wider than viewport
-    // because of zoom or a landscape spread), let native panning take over the
-    // gesture entirely. Otherwise the swipe handler would steal horizontal
-    // drags and the user could never reach the cropped left/right edges of
-    // the page.
-    const frame = frameRef.current
-    const horizontalOverflowPx = frame ? frame.scrollWidth - frame.clientWidth : 0
-    if (!shouldCapturePageSwipe(zoom, horizontalOverflowPx)) {
-      return
-    }
-
-    swipeStateRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      lastX: event.clientX,
-      lastY: event.clientY,
-    }
-    setIsSwiping(true)
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }, [menuOpen, zoom])
-
-  const handlePointerMove = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    const swipeState = swipeStateRef.current
-    if (!swipeState || swipeState.pointerId !== event.pointerId) return
-
-    swipeState.lastX = event.clientX
-    swipeState.lastY = event.clientY
-
-    const deltaX = event.clientX - swipeState.startX
-    const deltaY = event.clientY - swipeState.startY
-
-    if (Math.abs(deltaX) <= Math.abs(deltaY)) {
-      setDragOffset(0)
-      return
-    }
-
-    setDragOffset(Math.max(-96, Math.min(96, deltaX)))
-  }, [])
-
-  const handlePointerEnd = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
-    const swipeState = swipeStateRef.current
-    if (!swipeState || swipeState.pointerId !== event.pointerId) return
-
-    const decision = getSwipeDecision(
-      swipeState.lastX - swipeState.startX,
-      swipeState.lastY - swipeState.startY,
-    )
-
-    if (decision === 'previous' && page > 1) {
-      goTo(page - 1)
-    } else if (decision === 'next' && page < numPages) {
-      goTo(page + 1)
-    }
-
-    resetSwipe()
-  }, [goTo, numPages, page, resetSwipe])
-
   if (loading) return <PdfLoading progress={progress} style={style} className={className} />
   if (error || numPages === 0) {
     return (
@@ -198,13 +117,9 @@ export function PdfViewer({
       <PdfCanvas
         canvasRef={canvasRef}
         frameRef={frameRef}
-        dragOffset={dragOffset}
         isZoomed={zoom > 1}
-        isSwiping={isSwiping}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={resetSwipe}
+        onTapPrevious={() => goTo(page - 1)}
+        onTapNext={() => goTo(page + 1)}
       />
 
       <PdfControls

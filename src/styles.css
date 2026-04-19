@@ -286,12 +286,6 @@
   padding-bottom: var(--shelf-pdf-chrome-bottom);
   padding-left: 0;
   padding-right: 0;
-  /* Allow native panning in BOTH axes so the user can scroll a page that's
-     wider than the viewport (zoomed in, or a landscape art-book spread). The
-     pointer-event swipe handler in PdfViewer.tsx coexists with this: it only
-     consumes horizontal-dominated gestures, and yields to native scrolling
-     when the frame actually has horizontal overflow (see handlePointerDown).
-     pinch-zoom stays enabled so iOS rubber-band zoom still works on the page. */
   touch-action: pan-x pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 }
@@ -317,18 +311,7 @@
   min-width: 100%;
   min-height: 100%;
   transition: transform 180ms ease;
-  will-change: transform;
   user-select: none;
-  cursor: grab;
-}
-
-.pdf-reader-page--pannable {
-  justify-content: flex-start;
-}
-
-.pdf-reader-page--swiping {
-  transition: none;
-  cursor: grabbing;
 }
 
 .pdf-reader-page canvas {
@@ -344,6 +327,29 @@
      neighbour at integer-ish ratios. */
   image-rendering: auto;
 }
+
+/* ─── Tap zones (epub-style page turn) ─── */
+
+.pdf-tap-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 25%;
+  min-width: 44px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.pdf-tap-zone:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+.pdf-tap-zone--left  { left: 0; }
+.pdf-tap-zone--right { right: 0; }
 
 /* ─── Bottom toolbar ─── */
 

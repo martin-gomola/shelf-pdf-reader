@@ -1,41 +1,40 @@
-import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
+import type { RefObject } from 'react'
 
 export function PdfCanvas({
   canvasRef,
   frameRef,
-  dragOffset,
   isZoomed,
-  isSwiping,
-  onPointerDown,
-  onPointerMove,
-  onPointerUp,
-  onPointerCancel,
+  onTapPrevious,
+  onTapNext,
 }: {
   canvasRef: RefObject<HTMLCanvasElement | null>
   frameRef: RefObject<HTMLDivElement | null>
-  dragOffset: number
   isZoomed: boolean
-  isSwiping: boolean
-  onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void
-  onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void
-  onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void
-  onPointerCancel: () => void
+  onTapPrevious: () => void
+  onTapNext: () => void
 }) {
   return (
     <div
       className={`pdf-reader-frame${isZoomed ? ' pdf-reader-frame--pannable' : ''}`}
       ref={frameRef}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
     >
-      <div
-        className={`pdf-reader-page${isZoomed ? ' pdf-reader-page--pannable' : ''}${isSwiping ? ' pdf-reader-page--swiping' : ''}`}
-        style={{ transform: dragOffset === 0 ? undefined : `translateX(${dragOffset}px)` }}
-      >
+      <div className="pdf-reader-page">
         <canvas ref={canvasRef} />
       </div>
+      {!isZoomed && (
+        <>
+          <button
+            className="pdf-tap-zone pdf-tap-zone--left"
+            onClick={onTapPrevious}
+            aria-label="Previous page"
+          />
+          <button
+            className="pdf-tap-zone pdf-tap-zone--right"
+            onClick={onTapNext}
+            aria-label="Next page"
+          />
+        </>
+      )}
     </div>
   )
 }

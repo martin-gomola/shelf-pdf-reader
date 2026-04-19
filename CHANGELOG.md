@@ -3,6 +3,21 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## 0.5.0 - 2026-04-19
+
+### Changed
+- Replaced swipe gestures with invisible tap zones on the left and right edges
+  of the page (epub-reader style). Tapping the left 25% goes back, right 25%
+  goes forward. Tap zones are hidden when zoomed past 100% so native panning
+  still works.
+
+### Removed
+- Deleted `pdfSwipe.ts` and all pointer-event swipe handling from `PdfViewer`.
+- Removed `getSwipeDecision`, `shouldCapturePageSwipe`, `SWIPE_DISTANCE_PX`,
+  and `SwipeDecision` exports.
+- `PdfCanvas` no longer accepts `dragOffset`, `isSwiping`, or pointer event
+  handler props. New props: `onTapPrevious` and `onTapNext`.
+
 ## 0.4.0 - 2026-04-19
 
 ### Changed
