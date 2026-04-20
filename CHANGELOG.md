@@ -3,6 +3,17 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## 0.5.1 - 2026-04-20
+
+### Added
+- Close (X) button in the top-right corner of the sidebar menu. Previously
+  the only way to dismiss the sidebar was tapping the backdrop or the "< Back"
+  button, which navigated away from the book entirely.
+
+### Changed
+- Sidebar header is now a flex row with "< Back" on the left and the X close
+  button on the right, making both actions clearly distinct.
+
 ## 0.5.0 - 2026-04-19
 
 ### Changed

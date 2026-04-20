@@ -8,6 +8,15 @@ function IconChevronLeft() {
   )
 }
 
+function IconClose() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
+
 export function PdfOutlineMenu({
   menuOpen,
   onClose,
@@ -30,11 +39,16 @@ export function PdfOutlineMenu({
   return (
     <div className="pdf-menu-backdrop" onClick={onClose}>
       <nav className="pdf-menu-panel" onClick={(event) => event.stopPropagation()}>
-        {onBack && (
-          <button className="pdf-menu-back" onClick={onBack}>
-            <IconChevronLeft /> Back
+        <div className="pdf-menu-header">
+          {onBack && (
+            <button className="pdf-menu-back" onClick={onBack}>
+              <IconChevronLeft /> Back
+            </button>
+          )}
+          <button className="pdf-menu-close" onClick={onClose} aria-label="Close menu">
+            <IconClose />
           </button>
-        )}
+        </div>
         {bookTitle && <h3 className="pdf-menu-title">{bookTitle}</h3>}
 
         {outline.length > 0 && (
