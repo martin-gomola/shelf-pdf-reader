@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { PdfCanvas } from './PdfCanvas.js'
 import { PdfControls } from './PdfControls.js'
 import { PdfOutlineMenu } from './PdfOutlineMenu.js'
@@ -6,6 +6,7 @@ import { usePdfDocument, type PdfLoadProgress } from './usePdfDocument.js'
 import { usePdfNavigation } from './usePdfNavigation.js'
 import { usePdfRender } from './usePdfRender.js'
 import { formatBytes } from './formatBytes.js'
+import { resolvePdfSrc, backgroundCachePdf } from './pdfCache.js'
 
 export interface PdfViewerProps {
   /** URL the viewer loads from. May be a network URL, blob: URL, or data: URL. */
@@ -20,6 +21,19 @@ export interface PdfViewerProps {
   style?: CSSProperties
   /** Optional extra class names appended to the root `.pdf-reader` element. */
   className?: string
+  /**
+   * Cache API cache name for PDF reopen acceleration. When set:
+   *  - On open: checks the cache for a stored copy and loads it instantly
+   *    via blob URL (no network, pdf.js LocalPdfManager).
+   *  - After first load: silently fetches the full PDF into the cache so
+   *    the next open is instant.
+   *
+   * The consumer's Service Worker must NOT intercept .pdf requests via
+   * respondWith() — that blocks pdf.js range negotiation on cache misses.
+   *
+   * When omitted, no caching is performed (backward compatible).
+   */
+  cacheName?: string
 }
 
 function IconMenu() {
@@ -40,11 +54,45 @@ export function PdfViewer({
   onBack,
   style,
   className,
+  cacheName,
 }: PdfViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [focusMode, setFocusMode] = useState(false)
+
+  // When cacheName is set, resolve src from cache before handing it to
+  // pdf.js. null = still resolving, string = ready.
+  const [resolvedSrc, setResolvedSrc] = useState<string | null>(cacheName ? null : src)
+  const blobUrlRef = useRef<string | null>(null)
+  const networkUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!cacheName) {
+      networkUrlRef.current = src
+      setResolvedSrc(src)
+      return
+    }
+    let cancelled = false
+    resolvePdfSrc(src, cacheName).then(({ src: resolved, blobUrl, fromCache }) => {
+      if (cancelled) {
+        if (blobUrl) URL.revokeObjectURL(blobUrl)
+        return
+      }
+      blobUrlRef.current = blobUrl
+      networkUrlRef.current = fromCache ? null : src
+      setResolvedSrc(resolved)
+      if (!fromCache) void backgroundCachePdf(src, cacheName)
+    })
+    return () => {
+      cancelled = true
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
+      }
+    }
+  }, [src, cacheName])
+
   const {
     page,
     numPages,
@@ -56,10 +104,17 @@ export function PdfViewer({
     syncFromDocument,
     commitPageInput,
   } = usePdfNavigation({ initialPage, onPageChange })
+
+  const onReady = useCallback(
+    (resolvedPage: number, totalPages: number) => syncFromDocument(resolvedPage, totalPages),
+    [syncFromDocument],
+  )
+
   const { document, loading, error, outline, progress } = usePdfDocument({
-    src,
+    src: resolvedSrc ?? '',
     initialPage,
-    onReady: syncFromDocument,
+    onReady,
+    enabled: resolvedSrc !== null,
   })
   usePdfRender({
     document,
@@ -82,7 +137,7 @@ export function PdfViewer({
     setMenuOpen(false)
   }
 
-  if (loading) return <PdfLoading progress={progress} style={style} className={className} />
+  if (resolvedSrc === null || loading) return <PdfLoading progress={progress} style={style} className={className} />
   if (error || numPages === 0) {
     return (
       <div className={`reader-loading${className ? ` ${className}` : ''}`} style={style}>

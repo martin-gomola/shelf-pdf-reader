@@ -22,10 +22,14 @@ export function usePdfDocument({
   src,
   initialPage,
   onReady,
+  enabled = true,
 }: {
   src: string
   initialPage: number
   onReady: (resolvedPage: number, totalPages: number) => void
+  /** When false the hook skips loading entirely. Useful when the caller is
+   *  still resolving the source URL (e.g. from the Cache API). */
+  enabled?: boolean
 }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +39,7 @@ export function usePdfDocument({
   const [progress, setProgress] = useState<PdfLoadProgress>({ loaded: 0, total: 0 })
 
   useEffect(() => {
+    if (!enabled || !src) return
     let cancelled = false
     // Streaming + range options:
     //  - rangeChunkSize: 256 KiB chunks balance request count vs. wasted bytes.
@@ -114,7 +119,7 @@ export function usePdfDocument({
       if (progressFrame !== null) cancelAnimationFrame(progressFrame)
       loadTask.destroy()
     }
-  }, [src, initialPage, onReady])
+  }, [src, initialPage, onReady, enabled])
 
   return {
     document,

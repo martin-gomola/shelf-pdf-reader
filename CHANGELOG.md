@@ -3,12 +3,20 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
-## 0.5.1 - 2026-04-20
+## 0.6.0 - 2026-04-20
 
 ### Added
+- `cacheName` prop on `PdfViewer`. When set, the viewer checks the Cache API
+  for a previously stored copy (instant blob URL open) and background-caches
+  the full PDF after the first range-based load. Consumers no longer need
+  their own caching layer — just pass a cache name string.
+- Exported `resolvePdfSrc()` and `backgroundCachePdf()` utilities for
+  consumers who need fine-grained control over the caching lifecycle.
 - Close (X) button in the top-right corner of the sidebar menu. Previously
   the only way to dismiss the sidebar was tapping the backdrop or the "< Back"
   button, which navigated away from the book entirely.
+- `enabled` option on `usePdfDocument` to defer loading until the source URL
+  is resolved.
 
 ### Changed
 - Sidebar header is now a flex row with "< Back" on the left and the X close
