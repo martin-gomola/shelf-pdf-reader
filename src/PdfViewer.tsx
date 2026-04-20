@@ -76,11 +76,10 @@ export function PdfViewer({
   // pdf.js. null = still resolving, string = ready.
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(cacheName ? null : src)
   const blobUrlRef = useRef<string | null>(null)
-  const networkUrlRef = useRef<string | null>(null)
+  const needsCacheRef = useRef(false)
 
   useEffect(() => {
     if (!cacheName) {
-      networkUrlRef.current = src
       setResolvedSrc(src)
       return
     }
@@ -91,9 +90,8 @@ export function PdfViewer({
         return
       }
       blobUrlRef.current = blobUrl
-      networkUrlRef.current = fromCache ? null : src
+      needsCacheRef.current = !fromCache
       setResolvedSrc(resolved)
-      if (!fromCache) void backgroundCachePdf(src, cacheName)
     })
     return () => {
       cancelled = true
@@ -117,8 +115,17 @@ export function PdfViewer({
   } = usePdfNavigation({ initialPage, onPageChange })
 
   const onReady = useCallback(
-    (resolvedPage: number, totalPages: number) => syncFromDocument(resolvedPage, totalPages),
-    [syncFromDocument],
+    (resolvedPage: number, totalPages: number) => {
+      syncFromDocument(resolvedPage, totalPages)
+      // Start background caching only after pdf.js has finished its initial
+      // load and range negotiation. Firing it earlier races with pdf.js and
+      // causes the browser to download the full file twice in parallel.
+      if (needsCacheRef.current && cacheName) {
+        needsCacheRef.current = false
+        void backgroundCachePdf(src, cacheName)
+      }
+    },
+    [syncFromDocument, src, cacheName],
   )
 
   const { document, loading, error, outline, progress } = usePdfDocument({

@@ -3,6 +3,13 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## 0.7.0 - 2026-04-20
+
+### Fixed
+- Background PDF caching no longer races with pdf.js range requests. The
+  full-body cache fetch is deferred until after the document has loaded,
+  preventing the "downloading full file first" behavior on first open.
+
 ## 0.6.1 - 2026-04-20
 
 ### Fixed
