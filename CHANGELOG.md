@@ -3,6 +3,12 @@
 All notable changes to `@mgomola/shelf-pdf-reader`. Versioning follows
 [SemVer](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## 0.6.1 - 2026-04-20
+
+### Fixed
+- Focus mode restore button now shows the eye-off icon instead of the
+  hamburger menu icon, matching the focus mode toggle in the bottom bar.
+
 ## 0.6.0 - 2026-04-20
 
 ### Added
